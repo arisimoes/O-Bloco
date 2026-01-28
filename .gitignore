@@ -1,5 +1,6 @@
 # Credentials and tokens
-# Keep `credentials.json` in repo; do NOT commit `token.json`.
+# Keep credentials private; do NOT commit `credentials.json` or `token.json`.
+credentials.json
 old.credentials.json
 token.json
 
