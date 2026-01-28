@@ -1,5 +1,5 @@
 # Credentials and tokens
-credentials.json
+# Keep `credentials.json` in repo; do NOT commit `token.json`.
 old.credentials.json
 token.json
 
