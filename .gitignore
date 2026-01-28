@@ -1,0 +1,51 @@
+# Credentials and tokens
+credentials.json
+old.credentials.json
+token.json
+
+# Node modules
+node_modules/
+
+# Build / packaging outputs
+dist/
+build/
+out/
+release/
+*.asar
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor/IDE settings
+.vscode/
+.idea/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Keys / certs
+*.pem
+*.key
+*.p12
+
+# Caches / temp
+.cache/
+tmp/
+
+# Misc local files
+*.local
+*.user
+*.suo
