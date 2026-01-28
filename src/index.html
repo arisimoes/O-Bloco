@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Keep Notes - Electron</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 0; padding: 12px; }
+      #controls { margin-bottom: 12px; }
+      #notes { display: flex; gap: 12px; flex-wrap: wrap; }
+      .note { 
+        width: 220px; 
+        height: 240px;
+        padding: 12px; 
+        cursor: pointer; 
+        background:#fff9a8; 
+        box-shadow:0 4px 6px rgba(0,0,0,0.12); 
+        border-radius:6px; 
+        border:1px solid rgba(0,0,0,0.06);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+      .note-body {
+        flex: 1;
+        font-size: 0.9em;
+        color: #333;
+        margin-top: 8px;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 8;
+        -webkit-box-orient: vertical;
+        white-space: pre-wrap;
+      }
+      #tabs { margin-top: 12px; }
+      .tab { border: 1px solid #999; padding: 8px; margin-bottom: 8px; }
+    </style>
+  </head>
+  <body>
+    <div id="controls">
+      <button id="btnConnect">Conectar Google</button>
+      <button id="btnList">Listar notas</button>
+      <button id="btnCreate">Criar nota</button>
+      <button id="btnAttach">Anexar arquivo</button>
+      <button id="btnCheck">Verificar Drive</button>
+      <span id="driveStatus" style="margin-left:12px; font-size:0.9em; color:#333"></span>
+    </div>
+
+    <!-- Editor modal -->
+    <div id="editorModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); align-items:center; justify-content:center; z-index: 1000;">
+      <div id="editorModalContent" style="background:#fff; padding:16px; width:640px; max-width:95%; max-height: 95vh; overflow-y: auto; box-shadow:0 4px 12px rgba(0,0,0,0.3); border-radius: 8px;">
+        <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+          <label for="noteTitle">Título:</label>
+          <input id="noteTitle" type="text" style="flex:1; padding:6px;" />
+          
+          <label for="noteEncoding" style="margin-left: 10px;">Codificação:</label>
+          <select id="noteEncoding" style="padding:4px;">
+            <option value="utf8">UTF-8</option>
+            <option value="utf16le">UTF-16 LE</option>
+            <option value="win1252">Windows-1252</option>
+            <option value="iso-8859-1">ISO-8859-1</option>
+          </select>
+
+          <label for="noteColor" style="margin-left: 10px;">Cor:</label>
+          <select id="noteColor" style="padding:4px;">
+            <option value="#fff9a8">Amarelo</option>
+            <option value="#f28b82">Vermelho</option>
+            <option value="#fbbc04">Laranja</option>
+            <option value="#ccff90">Verde</option>
+            <option value="#a7ffeb">Ciano</option>
+            <option value="#cbf0f8">Azul</option>
+            <option value="#d7aefb">Roxo</option>
+            <option value="#fdcfe8">Rosa</option>
+            <option value="#e8eaed">Cinza</option>
+            <option value="#ffffff">Branco</option>
+          </select>
+        </div>
+        <div>
+          <label for="noteContent">Conteúdo:</label>
+          <textarea id="noteContent" style="width:100%; height:240px; padding:8px; margin-top:4px; font-family: inherit; font-size: 1.1em; border: 1px solid #ccc;"></textarea>
+        </div>
+        <div id="previewContainer" style="display:none; margin-top:8px;">
+          <div style="display:flex; gap:12px; align-items:flex-start;">
+            <div style="flex:1;">
+              <div style="font-weight:600; margin-bottom:6px;">Pré-visualização (Imagens)</div>
+              <div id="notePreview" style="border:1px solid #ddd; padding:8px; height:160px; overflow:auto; background:#fafafa; display:flex; gap:8px; flex-wrap:wrap;"></div>
+            </div>
+            <div style="width:160px; flex-shrink:0; padding-top:24px;">
+              <div>Caracteres: <span id="charCount">0</span></div>
+            </div>
+          </div>
+        </div>
+        <div id="statsRow" style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
+          <div id="validationMsg" style="color:#a00; display:none;">Título é obrigatório.</div>
+          <div id="charCountLegacy" style="font-size:0.9em; color:#666;">Caracteres: <span id="charCountVal">0</span></div>
+        </div>
+        <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+          <button id="btnModalAttach">Adicionar anexo</button>
+          <div id="modalAttachments" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
+        </div>
+        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px;">
+          <button id="btnModalDelete" style="margin-right:auto; background:#fee; color:#c00; border:1px solid #c00; display:none;">Excluir Nota</button>
+          <button id="btnModalCancel">Cancelar</button>
+          <button id="btnModalSave">Salvar</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="notes"></div>
+
+    <div id="tabs"></div>
+    <div id="attachments"></div>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>
