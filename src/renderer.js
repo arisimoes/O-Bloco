@@ -27,18 +27,48 @@ const modalAttachmentsEl = document.getElementById('modalAttachments');
 let modalAttachments = [];
 let editingFileId = null;
 
-btnConnect.addEventListener('click', async () => {
-  btnConnect.disabled = true;
-  btnConnect.textContent = 'Conectando...';
-  const res = await ipcRenderer.invoke('start-auth');
-  if (res.success) {
-    btnConnect.textContent = 'Conectado';
-  } else {
-    btnConnect.textContent = 'Conectar Google';
-    alert('Erro: ' + (res.error || 'unknown'));
+// If `btnConnect` exists keep it functional, but the UI normally hides it.
+if (btnConnect) {
+  btnConnect.addEventListener('click', async () => {
+    btnConnect.disabled = true;
+    btnConnect.textContent = 'Conectando...';
+    const res = await ipcRenderer.invoke('start-auth');
+    if (res.success) {
+      btnConnect.textContent = 'Conectado';
+    } else {
+      btnConnect.textContent = 'Conectar Google';
+      alert('Erro: ' + (res.error || 'unknown'));
+    }
+    btnConnect.disabled = false;
+  });
+}
+
+// Automatically attempt to authenticate on load so the app keeps a connection
+// to Google without requiring a visible "Connect" button.
+(async function autoConnect() {
+  try {
+    const res = await ipcRenderer.invoke('start-auth');
+    const driveStatus = document.getElementById('driveStatus');
+    if (res && res.success) {
+      if (driveStatus) driveStatus.textContent = 'Conectado ao Google';
+      // After successful auth, immediately request notes listing so UI is populated
+      try {
+        const listRes = await ipcRenderer.invoke('list-notes');
+        if (listRes && listRes.success) {
+          renderNotes(listRes.notes);
+        }
+      } catch (e) {
+        console.error('Failed to list notes after autoConnect:', e);
+      }
+    } else {
+      if (driveStatus) driveStatus.textContent = 'Não conectado';
+    }
+  } catch (e) {
+    const driveStatus = document.getElementById('driveStatus');
+    if (driveStatus) driveStatus.textContent = 'Erro na autenticação';
+    console.error('autoConnect error', e);
   }
-  btnConnect.disabled = false;
-});
+})();
 
 // Receive automatic notes after auth
 ipcRenderer.on('notes-updated', (event, notes) => {
@@ -463,16 +493,5 @@ ipc.on('menu-save-as', async () => {
   ipc.emit('menu-save');
 });
 
-// AUTO-CONNECT ON STARTUP
-window.addEventListener('DOMContentLoaded', async () => {
-  console.log('Iniciando conexão automática...');
-  // Check if we have internet by simply trying the auth flow which handles token restoration
-  const res = await ipcRenderer.invoke('start-auth');
-  if (res.success) {
-    btnConnect.textContent = 'Conectado';
-    console.log('Conexão automática estabelecida.');
-    // The main process sends 'notes-updated' automatically if auth succeeds with existing token
-  } else {
-    console.log('Conexão automática falhou ou requer interação:', res.error);
-  }
-});
+// Note: explicit DOMContentLoaded connect removed because UI has no connect button.
+// autoConnect() above performs authentication and initial listing on startup.
