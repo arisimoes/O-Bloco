@@ -105,9 +105,17 @@
       </div>
     </div>
 
-    <div id="notes"></div>
+    <div id="tabBar" style="display:flex; gap:6px; align-items:center; border-bottom:1px solid #ddd; padding-bottom:8px; margin-bottom:12px;">
+      <!-- Fixed main tab -->
+      <button id="tab-btn-main" class="tab-btn active" style="padding:6px 10px; border:1px solid #ccc; border-bottom:none; background:#fff; border-radius:4px 4px 0 0;">Principal</button>
+    </div>
 
-    <div id="tabs"></div>
+    <div id="tabContents">
+      <div id="tab-main" class="tab-content active">
+        <div id="notes"></div>
+      </div>
+    </div>
+
     <div id="attachments"></div>
 
     <script src="renderer.js"></script>

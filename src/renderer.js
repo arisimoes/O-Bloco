@@ -3,7 +3,8 @@ const { ipcRenderer } = require('electron');
 const btnConnect = document.getElementById('btnConnect');
 const btnCreate = document.getElementById('btnCreate');
 const notesEl = document.getElementById('notes');
-const tabsEl = document.getElementById('tabs');
+const tabBar = document.getElementById('tabBar');
+const tabContents = document.getElementById('tabContents');
 const attachmentsEl = document.getElementById('attachments');
 const editorModal = document.getElementById('editorModal');
 const editorModalContent = document.getElementById('editorModalContent');
@@ -238,25 +239,9 @@ function renderNotes(notes) {
     d.appendChild(date);
     d.appendChild(body);
     
-    // Click opens the edit modal directly
+    // Click opens the note in a new tab (browser-like)
     d.addEventListener('click', () => {
-      // open modal in edit mode for this note
-      editingFileId = n.id;
-      noteTitleInput.value = n.name;
-      noteContentInput.value = n.content || '';
-      noteEncodingEl.value = 'utf8';
-      const color = n.color || '#fff9a8';
-      noteColorEl.value = color;
-      
-      // Update modal color preview immediately
-      if (editorModalContent) editorModalContent.style.background = color;
-
-      modalAttachments = n.attachments ? JSON.parse(JSON.stringify(n.attachments)) : [];
-      btnModalDelete.style.display = 'block'; // Show delete button in edit mode
-      renderModalAttachments();
-      updatePreviewAndValidation();
-      editorModal.style.display = 'flex';
-      noteTitleInput.focus();
+      createNoteTab(n);
     });
     notesEl.appendChild(d);
   });
@@ -289,41 +274,99 @@ function normalizeNote(raw) {
   };
 }
 
-function openTab(note) {
-  const t = document.createElement('div');
-  t.className = 'tab';
+function activateTabButton(tabId) {
+  // deactivate all tab buttons
+  Array.from(tabBar.querySelectorAll('.tab-btn')).forEach(b => b.classList.remove('active'));
+  // hide all tab contents
+  Array.from(tabContents.querySelectorAll('.tab-content')).forEach(c => c.style.display = 'none');
+
+  const btn = document.getElementById('tab-btn-' + tabId);
+  const pane = document.getElementById('tab-' + tabId);
+  if (btn) btn.classList.add('active');
+  if (pane) pane.style.display = 'block';
+}
+
+function createNoteTab(note) {
+  const tabId = note.id || ('note-' + Date.now());
+  // If already opened, activate
+  if (document.getElementById('tab-' + tabId)) {
+    activateTabButton(tabId);
+    return;
+  }
+
+  // Create tab button
+  const btn = document.createElement('button');
+  btn.id = 'tab-btn-' + tabId;
+  btn.className = 'tab-btn';
+  btn.style.padding = '6px 10px';
+  btn.style.border = '1px solid #ccc';
+  btn.style.borderBottom = 'none';
+  btn.style.background = '#f6f6f6';
+  btn.style.borderRadius = '4px 4px 0 0';
+  btn.textContent = note.name || '(sem título)';
+
+  // close icon
+  const close = document.createElement('span');
+  close.textContent = ' ×';
+  close.style.marginLeft = '6px';
+  close.style.cursor = 'pointer';
+  close.addEventListener('click', (e) => {
+    e.stopPropagation();
+    // remove pane and button
+    const pane = document.getElementById('tab-' + tabId);
+    if (pane) pane.remove();
+    btn.remove();
+    // activate main tab
+    activateTabButton('main');
+  });
+
+  btn.appendChild(close);
+  btn.addEventListener('click', () => activateTabButton(tabId));
+  tabBar.appendChild(btn);
+
+  // Create content pane
+  const pane = document.createElement('div');
+  pane.id = 'tab-' + tabId;
+  pane.className = 'tab-content';
+  pane.style.display = 'none';
+  pane.style.padding = '12px';
+  // header
   const h = document.createElement('h3');
   h.textContent = note.name || '(sem título)';
-  const p = document.createElement('pre');
-  p.textContent = note.content || '';
   const editBtn = document.createElement('button');
   editBtn.textContent = 'Editar';
   editBtn.style.marginLeft = '8px';
   editBtn.addEventListener('click', () => {
-    // open modal in edit mode
     editingFileId = note.id;
     noteTitleInput.value = note.name || 'note';
     noteContentInput.value = note.content || '';
     noteEncodingEl.value = 'utf8';
-    modalAttachments = note.attachments ? note.attachments.slice() : [];
+    const color = note.color || '#fff9a8';
+    noteColorEl.value = color;
+    if (editorModalContent) editorModalContent.style.background = color;
+    modalAttachments = note.attachments ? JSON.parse(JSON.stringify(note.attachments)) : [];
+    btnModalDelete.style.display = 'block';
     renderModalAttachments();
     updatePreviewAndValidation();
     editorModal.style.display = 'flex';
     noteTitleInput.focus();
   });
-  t.appendChild(h);
-  t.appendChild(editBtn);
-  t.appendChild(p);
-  tabsEl.appendChild(t);
-  currentNote = {
-    id: note.id,
-    title: note.name || '(sem título)',
-    text: note.content || '',
-    attachments: note.attachments || [],
-    seq: note.seq,
-    createdAt: note.createdAt
-  };
-  renderAttachments();
+
+  const pre = document.createElement('pre');
+  pre.textContent = note.content || '';
+  pane.appendChild(h);
+  pane.appendChild(editBtn);
+  pane.appendChild(pre);
+  tabContents.appendChild(pane);
+
+  // activate the new tab
+  activateTabButton(tabId);
+}
+
+// Activate main tab button handler
+const mainTabBtn = document.getElementById('tab-btn-main');
+if (mainTabBtn) {
+  mainTabBtn.addEventListener('click', () => activateTabButton('main'));
 }
 
 let currentNote = null;
