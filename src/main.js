@@ -44,18 +44,35 @@ function createWindow() {
 }
 
 function buildMenu() {
+  // Load locale strings based on OS locale (fallback to English)
+  let lang = (app.getLocale && typeof app.getLocale === 'function') ? app.getLocale() : 'en';
+  lang = (lang || 'en').split('-')[0];
+  let strings = { menu: { file: 'File', createNote: 'Create Note', open: 'Open...', save: 'Save', saveAs: 'Save As...', quit: 'Quit' } };
+  try {
+    const localePath = path.join(__dirname, '..', 'locales', `${lang}.json`);
+    if (fs.existsSync(localePath)) {
+      const content = fs.readFileSync(localePath, 'utf8');
+      const parsed = JSON.parse(content);
+      if (parsed && parsed.menu) strings = parsed;
+    }
+  } catch (e) {
+    console.error('Failed to load locale, falling back to en:', e.message);
+  }
+
   const template = [
     {
-      label: 'File',
+      label: strings.menu.file,
       submenu: [
-        { label: 'Open...', accelerator: 'Ctrl+O', click: () => mainWindow.webContents.send('menu-open') },
-        { label: 'Save', accelerator: 'Ctrl+S', click: () => mainWindow.webContents.send('menu-save') },
-        { label: 'Save As...', accelerator: 'Ctrl+Shift+S', click: () => mainWindow.webContents.send('menu-save-as') },
+        { label: strings.menu.createNote, accelerator: 'Ctrl+N', click: () => mainWindow.webContents.send('menu-create') },
+        { label: strings.menu.open, accelerator: 'Ctrl+O', click: () => mainWindow.webContents.send('menu-open') },
+        { label: strings.menu.save, accelerator: 'Ctrl+S', click: () => mainWindow.webContents.send('menu-save') },
+        { label: strings.menu.saveAs, accelerator: 'Ctrl+Shift+S', click: () => mainWindow.webContents.send('menu-save-as') },
         { type: 'separator' },
-        { role: 'quit' }
+        { label: strings.menu.quit, role: 'quit' }
       ]
     }
   ];
+
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
 }

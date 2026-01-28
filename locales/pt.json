@@ -1,0 +1,10 @@
+{
+  "menu": {
+    "file": "Arquivo",
+    "createNote": "Criar nota",
+    "open": "Abrir...",
+    "save": "Salvar",
+    "saveAs": "Salvar Como...",
+    "quit": "Sair"
+  }
+}

@@ -437,6 +437,21 @@ ipc.on('menu-open', async () => {
   }
 });
 
+// Menu 'Create note' action: open the editor modal for a new note
+ipc.on('menu-create', async () => {
+  // reuse the same flow as the Create button
+  editingFileId = null;
+  noteTitleInput.value = 'Nova nota';
+  noteContentInput.value = '';
+  noteEncodingEl.value = 'utf8';
+  noteColorEl.value = '#fff9a8';
+  if (editorModalContent) editorModalContent.style.background = '#fff9a8';
+  btnModalDelete.style.display = 'none';
+  updatePreviewAndValidation();
+  editorModal.style.display = 'flex';
+  noteTitleInput.focus();
+});
+
 ipc.on('menu-save', async () => {
   if (!currentNote) return alert('Abra ou selecione uma nota para salvar.');
   const def = (currentNote.title || 'note') + '.knote';
