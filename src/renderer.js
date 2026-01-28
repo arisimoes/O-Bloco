@@ -1,10 +1,7 @@
 const { ipcRenderer } = require('electron');
 
 const btnConnect = document.getElementById('btnConnect');
-const btnList = document.getElementById('btnList');
 const btnCreate = document.getElementById('btnCreate');
-const btnAttach = document.getElementById('btnAttach');
-const btnCheck = document.getElementById('btnCheck');
 const notesEl = document.getElementById('notes');
 const tabsEl = document.getElementById('tabs');
 const attachmentsEl = document.getElementById('attachments');
@@ -75,18 +72,6 @@ ipcRenderer.on('notes-updated', (event, notes) => {
   try { if (notes && Array.isArray(notes)) renderNotes(notes); } catch (e) { console.error(e); }
 });
 
-btnList.addEventListener('click', async () => {
-  btnList.disabled = true;
-  btnList.textContent = 'Obtendo notas...';
-  const res = await ipcRenderer.invoke('list-notes');
-  if (res.success) {
-    renderNotes(res.notes);
-  } else {
-    alert('Erro: ' + (res.error || 'unknown'));
-  }
-  btnList.disabled = false;
-  btnList.textContent = 'Listar notas';
-});
 
 btnCreate.addEventListener('click', () => {
   // open modal editor
@@ -356,19 +341,7 @@ function renderAttachments() {
   });
 }
 
-btnAttach.addEventListener('click', async () => {
-  if (!currentNote) return alert('Abra ou selecione uma nota primeiro.');
-  const res = await ipcRenderer.invoke('show-open-attachment-dialog');
-  if (res.canceled) return;
-  for (const fp of res.filePaths) {
-    // read file from renderer using Node fs
-    const buffer = require('fs').readFileSync(fp);
-    const b64 = buffer.toString('base64');
-    currentNote.attachments = currentNote.attachments || [];
-    currentNote.attachments.push({ name: require('path').basename(fp), dataBase64: b64 });
-  }
-  renderAttachments();
-});
+
 
 btnModalAttach.addEventListener('click', async () => {
   const res = await ipcRenderer.invoke('show-open-attachment-dialog');
@@ -474,19 +447,7 @@ ipc.on('menu-save', async () => {
   else alert('Erro ao salvar: ' + saveRes.error);
 });
 
-btnCheck.addEventListener('click', async () => {
-  btnCheck.disabled = true;
-  btnCheck.textContent = 'Verificando...';
-  const res = await ipcRenderer.invoke('check-drive');
-  const statusEl = document.getElementById('driveStatus');
-  if (res && res.success) {
-    statusEl.textContent = `Drive OK — pasta: ${res.folderId}`;
-  } else {
-    statusEl.textContent = `Drive erro: ${res && res.error || 'unknown'}`;
-  }
-  btnCheck.disabled = false;
-  btnCheck.textContent = 'Verificar Drive';
-});
+
 
 ipc.on('menu-save-as', async () => {
   // same as save for now
